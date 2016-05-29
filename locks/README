@@ -1,0 +1,14 @@
+flockfile:
+  implementado por glibc NO por el kernel
+  es hilo seguro
+  este lock es incompatible con flock o fcntl
+  solo sirve a nivel de proceso, NO ENTRE PROCESOS. Simplemente tiene un contador asociado al file descriptor abierto, este contador está en memoria y no se comparte entre procesos
+
+flock:
+  no es hilo seguro!!! Si dos hilos del mismo proceso intentan coger el mismo file lock pueden fallar :(
+  flock es asociado con proceso pero parece funcionar también con hilos pero como no es hilo seguro supongo que puede dar problemas :/
+    http://stackoverflow.com/questions/9462532/multiple-threads-able-to-get-flock-at-the-same-time
+
+fcntl:
+  solo funciona con procesos
+  no es hilo seguro

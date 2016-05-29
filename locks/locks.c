@@ -145,12 +145,12 @@ void *thread_lock(void * arg) {
 
     threadNumber = (int) arg;
 
-    gate();
-
     fd = open(fileName, O_CREAT | O_RDWR, 0664);
     if (fd == -1) {
         print_with_date (stderr, "Thread %d, open file error", threadNumber, strerror(errno));
     }
+
+    gate();
    
     print_with_date (stdout, "Thread %d: before lock\n", threadNumber);
     do {
