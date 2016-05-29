@@ -34,6 +34,7 @@ int main (int argc, char *argv[])
     struct sigaction sa;        /*sig actions values*/
     bool isFileLock = false;
     bool isThread = false;
+    fileName = "/tmp/locks";
 
 	
 	opterr = 0;
@@ -104,7 +105,6 @@ int main (int argc, char *argv[])
 	
 	return 0;
 }
-
 
 int main_process ()
 {
