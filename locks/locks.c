@@ -19,8 +19,14 @@
 
 
 
+pthread_mutex_t gateMutex;
+pthread_cond_t gateBroadCast;
+bool isGateOpen = false;
+int threadsNumber = 20;
+
+
 struct sigaction sigintAction;  /*Stores the init SIGINT sigaction value*/
-char *fileName;
+char *fileName = "/tmp/locks";
 
 
 
@@ -32,10 +38,7 @@ int main (int argc, char *argv[])
 	int c;                      /*Getopt parameter*/
 	/*Default values*/
     struct sigaction sa;        /*sig actions values*/
-    bool isFileLock = false;
     bool isThread = false;
-    fileName = "/tmp/locks";
-
 	
 	opterr = 0;
 	while ((c = getopt (argc, argv, "p:tf:")) != -1) {
@@ -44,7 +47,7 @@ int main (int argc, char *argv[])
             fileName = optarg;
             break;
 		case 't':
-            isFileLock = true;
+            threadsNumber = atoi(optarg);
 			break;
 		case 'f':
             isThread = true;
@@ -108,91 +111,67 @@ int main (int argc, char *argv[])
 
 int main_process ()
 {
-	pthread_t idThreadOne;                 /*Thread one identifier number*/
-    pthread_t idThreadTwo;                 /*Thread two identifier number*/
+    int createIndex;
+    int joinIndex;
+	pthread_t threadIds [threadsNumber];                 /*Threads identifier numbers*/
 	
-	
-	if (pthread_create (&idThreadOne, NULL, thread_one, NULL) != 0 ) {
-        fprintf (stderr, "%s: %s\n", "thread one creation failed", strerror(errno));
-        fflush (stderr);
+    pthread_mutex_init(&gateMutex, NULL);
+    pthread_cond_init(&gateBroadCast, NULL);
+    closeGate();
 
-        return -1;
-	}
 
-    // Let other thread progress. Should be enough with sleep. This code is just for testing.
-    sleep(10);
+    for (createIndex = 0; createIndex < threadsNumber; createIndex++) {
+        print_with_date (stdout, "Thread %d created\n", createIndex);
+    	if (pthread_create (&threadIds[createIndex], NULL, &thread_lock, (void *) createIndex) != 0 ) {
+            print_with_date (stderr, "Thread %d creation failed\n", createIndex, strerror(errno));
+            break;
+    	}
+    }
 
-	if (pthread_create (&idThreadTwo, NULL, thread_two, NULL) != 0 ) {
-        fprintf (stderr, "%s: %s\n", "thread two creation failed", strerror(errno));
-        fflush (stderr);
+    sleep(5);
+    openGate();
 
-        return -1;
-	}
-
-    sleep(90);
-
+    for (joinIndex = createIndex; joinIndex --> 0; ) {
+        if (pthread_join(threadIds[joinIndex], NULL) != 0) {
+            print_with_date (stderr, "Thread %d join error\n", joinIndex, strerror(errno));   
+        }
+    }
+    
     return 0;
 }
 
-void *thread_one(void * arg) {
+void *thread_lock(void * arg) {
+    int threadNumber;
     int fd;
     int flockErr;
 
+    threadNumber = (int) arg;
+
+    gate();
+
     fd = open(fileName, O_CREAT | O_RDWR, 0664);
     if (fd == -1) {
-        print_with_date (stderr, "%s\n", "ThreadOne, open file error", strerror(errno));
+        print_with_date (stderr, "Thread %d, open file error", threadNumber, strerror(errno));
     }
    
-    print_with_date (stdout, "ThreadOne: before lock\n");
+    print_with_date (stdout, "Thread %d: before lock\n", threadNumber);
     do {
         flockErr = flock(fd, LOCK_EX);
     } while(flockErr == -1 && errno == EINTR);
 
 
     if (flockErr == -1) {
-        print_with_date (stderr, "%s: %s\n", "threadOne, flock error", strerror(errno));
+        print_with_date (stderr, "Thread %d: flock error", threadNumber, strerror(errno));
     }
-    print_with_date (stdout, "ThreadOne: after lock\n");
+    print_with_date (stdout, "Thread %d: after lock\n", threadNumber);
 
-    sleep(30);
+    sleep(5);
 
-    print_with_date (stdout, "ThreadOne: before release lock\n");
+    print_with_date (stdout, "Thread %d: before release lock\n", threadNumber);
     do {
         flockErr = flock(fd, LOCK_UN);
     } while(flockErr == -1 && errno == EINTR);
-    print_with_date (stdout, "ThreadOne: after release lock\n");
-
-    close (fd);
-
-    pthread_exit(0);
-}
-
-void *thread_two(void * arg) {
-    int fd;
-    int flockErr;
-
-    fd = open(fileName, O_CREAT | O_RDWR, 0664);
-    if (fd == -1) {
-        print_with_date (stderr, "%s: %s\n", "ThreadTwo, open file error", strerror(errno));
-    }
-    
-    print_with_date (stdout, "ThreadTwo: before lock\n");
-    do {
-        flockErr = flock(fd, LOCK_EX);
-    } while(flockErr == -1 && errno == EINTR);
-
-
-    if (flockErr == -1) {
-        print_with_date (stderr, "%s: %s\n", "ThreadTwo, flock error", strerror(errno));
-    }
-    print_with_date (stdout, "ThreadTwo: after lock\n");
-
-
-    print_with_date (stdout, "ThreadTwo: before release lock\n");
-    do {
-        flockErr = flock(fd, LOCK_UN);
-    } while(flockErr == -1 && errno == EINTR);
-    print_with_date (stdout, "ThreadTwo: after release lock\n");
+    print_with_date (stdout, "Thread %d: after release lock\n", threadNumber);
 
     close (fd);
 
@@ -223,6 +202,34 @@ int print_with_date(FILE *stream, const char *format, ...)
         done = fflush (stream);
         return done;
     }    
+}
+
+void gate() {
+    
+    pthread_mutex_lock(&gateMutex);
+
+    while(!isGateOpen) {
+        pthread_cond_wait(&gateBroadCast, &gateMutex);
+    }
+
+    pthread_mutex_unlock(&gateMutex);
+}
+
+void openGate() {
+    pthread_mutex_lock(&gateMutex);
+
+    isGateOpen = true;
+    pthread_cond_broadcast(&gateBroadCast);
+
+    pthread_mutex_unlock(&gateMutex);
+}
+
+void closeGate() {
+    pthread_mutex_lock(&gateMutex);
+
+    isGateOpen = false;
+
+    pthread_mutex_unlock(&gateMutex);
 }
 
 void sigint_handler(int sig)
