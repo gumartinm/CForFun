@@ -183,7 +183,8 @@ int print_with_date(FILE *stream, const char *format, ...)
     va_list arg;
     int done;
     time_t rawtime;
-    char buff[50];
+    char buff[100];
+    char msg[50];
     char dateformatter[100] = "%s: ";
     struct tm timeinfo;
 
@@ -192,8 +193,11 @@ int print_with_date(FILE *stream, const char *format, ...)
     strftime(buff, 50, "%Y-%m-%d %H:%M:%S", &timeinfo);
 
     va_start (arg, format);
-    strcat(dateformatter, format);
-    done = fprintf (stream, dateformatter, buff, arg);
+    vsnprintf (msg , 50, format, arg);
+
+    strcat(dateformatter, msg);
+    done = fprintf (stream, dateformatter, buff, msg);
+    va_end (arg);
 
     if (done < 0) {
         fflush (stream);
