@@ -140,32 +140,27 @@ void *thread_one(void * arg) {
 
     fd = open(fileName, O_CREAT | O_RDWR, 0664);
     if (fd == -1) {
-        fprintf (stderr, "%s: %s\n", "threadOne, open file error", strerror(errno));
+        print_with_date (stderr, "%s\n", "ThreadOne, open file error", strerror(errno));
     }
    
-    fprintf (stdout, "ThreadOne: before lock\n");
-    fflush (stdout);
+    print_with_date (stdout, "ThreadOne: before lock\n");
     do {
         flockErr = flock(fd, LOCK_EX);
     } while(flockErr == -1 && errno == EINTR);
 
 
     if (flockErr == -1) {
-        fprintf (stderr, "%s: %s\n", "threadOne, flock error", strerror(errno));
-        fflush(stderr);
+        print_with_date (stderr, "%s: %s\n", "threadOne, flock error", strerror(errno));
     }
-    fprintf (stdout, "ThreadOne: after lock\n");
-    fflush (stdout);
+    print_with_date (stdout, "ThreadOne: after lock\n");
 
     sleep(30);
 
-    fprintf (stdout, "ThreadOne: before release lock\n");
-    fflush (stdout);
+    print_with_date (stdout, "ThreadOne: before release lock\n");
     do {
         flockErr = flock(fd, LOCK_UN);
     } while(flockErr == -1 && errno == EINTR);
-    fprintf (stdout, "ThreadOne: after release lock\n");
-    fflush (stdout); 
+    print_with_date (stdout, "ThreadOne: after release lock\n");
 
     close (fd);
 
@@ -178,31 +173,26 @@ void *thread_two(void * arg) {
 
     fd = open(fileName, O_CREAT | O_RDWR, 0664);
     if (fd == -1) {
-        fprintf (stderr, "%s: %s\n", "ThreadTwo, open file error", strerror(errno));
-        fflush (stderr);
+        print_with_date (stderr, "%s: %s\n", "ThreadTwo, open file error", strerror(errno));
     }
     
-    fprintf (stdout, "ThreadTwo: before lock\n");
-    fflush (stdout);
+    print_with_date (stdout, "ThreadTwo: before lock\n");
     do {
         flockErr = flock(fd, LOCK_EX);
     } while(flockErr == -1 && errno == EINTR);
 
 
     if (flockErr == -1) {
-        fprintf (stderr, "%s: %s\n", "ThreadTwo, flock error", strerror(errno));
-        fflush (stderr);
+        print_with_date (stderr, "%s: %s\n", "ThreadTwo, flock error", strerror(errno));
     }
-    fprintf (stdout, "ThreadTwo: after lock\n");
-    fflush (stdout);
+    print_with_date (stdout, "ThreadTwo: after lock\n");
 
 
-    fprintf (stdout, "ThreadTwo: before release lock\n");
-    fflush (stdout);
+    print_with_date (stdout, "ThreadTwo: before release lock\n");
     do {
         flockErr = flock(fd, LOCK_UN);
     } while(flockErr == -1 && errno == EINTR);
-    fprintf (stdout, "ThreadTwo: after release lock\n");
+    print_with_date (stdout, "ThreadTwo: after release lock\n");
 
     close (fd);
 
