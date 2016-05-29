@@ -1,7 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -41,7 +39,7 @@ int main (int argc, char *argv[])
     bool isThread = false;
 	
 	opterr = 0;
-	while ((c = getopt (argc, argv, "p:tf:")) != -1) {
+	while ((c = getopt (argc, argv, "p:t:f:")) != -1) {
 		switch (c) {
         case 'p':
             fileName = optarg;
