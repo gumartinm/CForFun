@@ -4,11 +4,32 @@ flockfile:
   este lock es incompatible con flock o fcntl
   solo sirve a nivel de proceso, NO ENTRE PROCESOS. Simplemente tiene un contador asociado al file descriptor abierto, este contador está en memoria y no se comparte entre procesos
 
-flock:
-  no es hilo seguro!!! Si dos hilos del mismo proceso intentan coger el mismo file lock pueden fallar :(
-  flock es asociado con proceso pero parece funcionar también con hilos pero como no es hilo seguro supongo que puede dar problemas :/
-    http://stackoverflow.com/questions/9462532/multiple-threads-able-to-get-flock-at-the-same-time
 
+flock:
+  no sé si es hilo seguro o no
+  lo que sí sé es que en Linux parece funcionar con hilos
+  en algunos casos da problemas pero puede que sea porque en algunos sistemas puede que esté implementado con fcntl (no estoy seguro de esto):
+    http://stackoverflow.com/questions/9462532/multiple-threads-able-to-get-flock-at-the-same-time
+    (tiene pinta de que ese problema viene dado porque el flock de ese sistema está implementado con fcntl, pero no estoy seguro de esto que digo)
+  
+  man flock:
+   * If a process uses open(2) (or similar) to obtain more than one descriptor for the same file:
+      Como mi programa, un proceso que hace muchas llamadas open para el mismo archivo
+   * these descriptors are treated  independently  by  flock():
+      Lo que quiere decir con esto es que si hiciera esto
+       open 1
+       flock 1
+       flock 1
+     el segundo flock no hace nada pero si hago esto
+       open 1
+       flock 1
+       open 2
+       flock 2
+     el flock 1 y el flock 2 son tratados de forma independiente
+   * An attempt to lock the file using one of these file descriptors may be denied by a lock that the calling process has already placed via another descriptor:
+       lo del may da miedo (parece decir que puede o no bloquear...)
+       en el mismo proceso bloque si he hecho más de un open al mismo archivo (como he puesto justo encima)
+  
 fcntl:
   solo funciona con procesos
   no es hilo seguro
