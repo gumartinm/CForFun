@@ -17,18 +17,19 @@ flock:
       Como mi programa, un proceso que hace muchas llamadas open para el mismo archivo
    * these descriptors are treated  independently  by  flock():
       Lo que quiere decir con esto es que si hiciera esto
-       open 1
-       flock 1
-       flock 1
-     el segundo flock no hace nada pero si hago esto
-       open 1
-       flock 1
-       open 2
-       flock 2
-     el flock 1 y el flock 2 son tratados de forma independiente
+          open 1
+          flock 1
+          flock 1
+      el segundo flock no hace nada pero si hago esto
+          open 1
+          flock 1
+          open 2
+          flock 2
+      el flock 1 y el flock 2 son tratados de forma independiente (hago el flock 2 aunque el flock 1 ya había sido hecho sobre el mismo archivo)
    * An attempt to lock the file using one of these file descriptors may be denied by a lock that the calling process has already placed via another descriptor:
-       lo del may da miedo (parece decir que puede o no bloquear...)
-       en el mismo proceso bloque si he hecho más de un open al mismo archivo (como he puesto justo encima)
+       Lo del may da miedo (parece decir que puede o no bloquear...)
+       En el mismo proceso bloqueo si he hecho más de un open al mismo archivo (como he puesto justo encima) Un bloque hecho en
+       fd1 "may" (da miedo porque parece decirlo como algo no totalmente seguro...) bloquear f2.
   
 fcntl:
   solo funciona con procesos
