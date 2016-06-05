@@ -151,7 +151,7 @@ void *thread_lock(void * arg)
     fd = open(fileName, O_CREAT | O_RDWR, 0664);
     if (fd == -1) {
         goto end;
-        print_with_date (stderr, "Thread %d, open file error", threadNumber, strerror(errno));
+        print_with_date (stderr, "Thread %d, open file error\n", threadNumber, strerror(errno));
     }
 
 
@@ -198,7 +198,7 @@ int test_require_user() {
       
     fd = open(fileName, O_CREAT | O_RDWR, 0664);
     if (fd == -1) {
-        print_with_date(stderr, "Open file error", strerror(errno));
+        print_with_date(stderr, "Open file error\n", strerror(errno));
         goto end;
     }
 
