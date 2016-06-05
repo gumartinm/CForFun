@@ -13,7 +13,7 @@
 #include <sys/file.h>
 #include <stdarg.h>
 #include <time.h>
-#include "locks.h"
+#include "flocks.h"
 
 
 
@@ -96,19 +96,22 @@ int main (int argc, char *argv[])
         }
     }
 
-	
-	if (main_process () < 0)
-		return -1;
+    if (threadsNumber > 0) {
+	    return test_threads_concurrency();
+    } else {
+        return test_require_user();
+    }
 	
 	return 0;
 }
 
-int main_process ()
+int test_threads_concurrency()
 {
+    int returnValue = 0;
     int createIndex;
     int joinIndex;
-	pthread_t threadIds [threadsNumber];                 /*Threads identifier numbers*/
-	
+    pthread_t threadIds [threadsNumber];                 /*Threads identifier numbers*/
+
     pthread_mutex_init(&gateMutex, NULL);
     pthread_cond_init(&gateBroadCast, NULL);
     closeGate();
@@ -118,6 +121,7 @@ int main_process ()
         print_with_date (stdout, "Thread %d created\n", createIndex);
     	if (pthread_create (&threadIds[createIndex], NULL, &thread_lock, (void *) createIndex) != 0 ) {
             print_with_date (stderr, "Thread %d creation failed\n", createIndex, strerror(errno));
+            returnValue = -1;
             break;
     	}
     }
@@ -127,53 +131,119 @@ int main_process ()
 
     for (joinIndex = createIndex; joinIndex --> 0; ) {
         if (pthread_join(threadIds[joinIndex], NULL) != 0) {
-            print_with_date (stderr, "Thread %d join error\n", joinIndex, strerror(errno));   
+            print_with_date (stderr, "Thread %d join error\n", joinIndex, strerror(errno));
+            returnValue = -1;
         }
     }
     
-    return 0;
+    return returnValue;
 }
 
-void *thread_lock(void * arg) {
+void *thread_lock(void * arg)
+{
     int threadNumber;
     int fd;
     int flockErr;
 
     threadNumber = (int) arg;
 
+
     fd = open(fileName, O_CREAT | O_RDWR, 0664);
     if (fd == -1) {
+        goto end;
         print_with_date (stderr, "Thread %d, open file error", threadNumber, strerror(errno));
     }
 
+
     gate();
+
    
     print_with_date (stdout, "Thread %d: before lock\n", threadNumber);
     do {
         flockErr = flock(fd, LOCK_EX);
     } while(flockErr == -1 && errno == EINTR);
 
-
     if (flockErr == -1) {
-        print_with_date (stderr, "Thread %d: flock error", threadNumber, strerror(errno));
+        print_with_date (stderr, "Thread %d: flock get exclusive lock error", threadNumber, strerror(errno));
+        goto end;
     }
     print_with_date (stdout, "Thread %d: after lock\n", threadNumber);
 
+
     sleep(5);
 
-    print_with_date (stdout, "Thread %d: before release lock\n", threadNumber);
+
+    print_with_date(stdout, "Thread %d: before release lock\n", threadNumber);
     do {
         flockErr = flock(fd, LOCK_UN);
     } while(flockErr == -1 && errno == EINTR);
-    print_with_date (stdout, "Thread %d: after release lock\n", threadNumber);
 
+    if (flockErr == -1) {
+        print_with_date(stderr, "Thread %d: flock unlock error", threadNumber, strerror(errno));
+        goto end;
+    }
+    print_with_date(stdout, "Thread %d: after release lock\n", threadNumber);
+
+
+end:
     close (fd);
-
     pthread_exit(0);
 }
 
-int print_with_date(FILE *stream, const char *format, ...)
-{
+int test_require_user() {
+    int returnValue = -1;
+    int fd;
+    int flockErr;
+      
+      
+    fd = open(fileName, O_CREAT | O_RDWR, 0664);
+    if (fd == -1) {
+        print_with_date(stderr, "Open file error", strerror(errno));
+        goto end;
+    }
+
+
+    fprintf(stdout, "Press ENTER key for locking file: %s\n", fileName);
+    fflush(stdout);
+    getchar();
+
+ 
+    print_with_date(stdout, "Before lock\n");
+    do {
+        flockErr = flock(fd, LOCK_EX); 
+    } while(flockErr == -1 && errno == EINTR);
+
+    if (flockErr == -1) {
+        print_with_date (stderr, "flock get exclusive lock error", strerror(errno));
+        goto end;
+    }
+    print_with_date(stdout, "After lock\n");
+
+
+    fprintf(stdout, "Press ENTER key for unlocking file: %s\n", fileName);
+    fflush(stdout);
+    getchar();
+
+
+    print_with_date(stdout, "Before release lock\n");
+    do {
+        flockErr = flock(fd, LOCK_UN);
+    } while(flockErr == -1 && errno == EINTR);
+
+    if (flockErr == -1) {
+        print_with_date (stderr, "flock unlock error", strerror(errno));
+        goto end;
+    }
+    print_with_date (stdout, "After release lock\n");
+
+
+    returnValue = 0;
+end:
+    close (fd);
+    return returnValue;
+}
+
+int print_with_date(FILE *stream, const char *format, ...) {
     va_list arg;
     int done;
     time_t rawtime;

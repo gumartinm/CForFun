@@ -1,7 +1,7 @@
-all: locks
+all: flocks
 
-locks: locks.c
-	gcc -Wall -g -o locks locks.c -lpthread
+flocks: flocks.c
+	gcc -Wall -g -o flocks flocks.c -lpthread
 
 clean:
-	rm -f locks
+	rm -f flocks
