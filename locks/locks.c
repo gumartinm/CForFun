@@ -36,7 +36,6 @@ int main (int argc, char *argv[])
 	int c;                      /*Getopt parameter*/
 	/*Default values*/
     struct sigaction sa;        /*sig actions values*/
-    bool isThread = false;
 	
 	opterr = 0;
 	while ((c = getopt (argc, argv, "p:t:f:")) != -1) {
@@ -46,9 +45,6 @@ int main (int argc, char *argv[])
             break;
 		case 't':
             threadsNumber = atoi(optarg);
-			break;
-		case 'f':
-            isThread = true;
 			break;
 		case '?':
 			if ((optopt == 'p') || (optopt == 't') || (optopt == 'f'))
@@ -236,16 +232,6 @@ void closeGate() {
 
 void sigint_handler(int sig)
 {
-    /*TODO: kill child processes, finish threads and release allocate memory*/
-    /* From http://www.cons.org/cracauer/sigint.html
-     * Since a shellscript may in turn be called by a shellscript, you need to make sure that you properly
-     * communicate the discontinue intention to the calling program. WIFSIGNALED(status) and WTERMSIG(status)
-     * tell whether the child says "I exited on SIGINT". These values are used by the shell to discontinue
-     * the whole shell script in execution. If I use exit the shell has no way to know the user pressed Ctrl-C
-     * in order to stop the shell script in execution. This has just meaning when this program is executed in a shell script
-     * but because I do not know how the user is going to use it I must always finish every SIGINT handler in this way.
-     * So from a handler for SIGINT I must always finish with kill(SIGINT, SIG_DFL) (default kills the application)
-     */
     if (sigaction(SIGINT, &sigintAction, NULL) < 0) {
         exit (EXIT_FAILURE);
     }
