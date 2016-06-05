@@ -1,0 +1,69 @@
+http://www-01.ibm.com/support/knowledgecenter/SSEPGG_9.7.0/com.ibm.db2.luw.sql.ref.doc/doc/r0000784.html?cp=SSEPGG_9.7.0%2F2-10-3-2-31
+
+http://www-01.ibm.com/support/knowledgecenter/SSEPEK_10.0.0/com.ibm.db2z10.doc.intro/src/tpc/db2z_numericdatatypes.dita
+
+Cuidado si usas DECFLOAT porque hay problemas al pasarlo a BigDecimal.
+If retrieval fails because the column value is NaN, INFINITY, or -INFINITY:
+http://www-01.ibm.com/support/knowledgecenter/SSEPGG_9.5.0/com.ibm.db2.luw.apdv.java.doc/src/tpc/imjcc_cjv00003.html
+
+
+http://www-01.ibm.com/support/knowledgecenter/SSEPEK_10.0.0/com.ibm.db2z10.doc.intro/src/tpc/db2z_stringdatatypes.dita?lang=en
+
+http://www-01.ibm.com/support/knowledgecenter/SSEPGG_9.7.0/com.ibm.db2.luw.sql.ref.doc/doc/r0000863.html?cp=SSEPGG_9.7.0%2F2-10-3-2-168
+
+http://www-01.ibm.com/support/knowledgecenter/SSEPEK_10.0.0/com.ibm.db2z10.doc.sqlref/src/tpc/db2z_castspecification.dita
+
+https://www-01.ibm.com/support/knowledgecenter/SSEPGG_9.7.0/com.ibm.db2.luw.sql.ref.doc/doc/r0007110.html?cp=SSEPGG_9.7.0%2F2-10-3-2-179
+
+DECFLOAT, the datatype of the future:
+Rounding happens when the resulting precision of an expression is wider than the supported precision. DECFLOAT supports all the rounding modes that most applications need. These modes are fully compatible with the IEEE standard and, thus, are supported on most hardware implementations as well.
+DECIMAL: Limited to ROUND_DOWN(or truncation) for the most part.
+http://www.ibm.com/developerworks/data/library/techarticle/dm-0801chainani/
+
+Cuidado cuando uses BigDecimal(double) sin MathContext. El driver JDBC puede arrojar excepciones  si el double "result in a large scale value"
+Como por ejemplo 0.01 (que como sabes transformado a double es un número enorme)
+
+  PreparedStatement ps = 
+    connection.prepareStatement("INSERT INTO Foo SET name=?, value=?");
+  ps.setString(1, "penny");
+  ps.setBigDecimal(2, new BigDecimal(0.01));
+  ps.executeUpdate();
+Recomendación: usar BigDecimal(String) Como por cierto tú ya sabías :) Lo que pasa es que en el caso de la N2A el BigDecimal siempre tiene
+un MathContext (o debería tenerlo) así que no pasará nada de esto :)
+
+https://www.ibm.com/developerworks/library/j-jtp0114/
+
+
+Operaciones aritméticas en DB2:
+Atención a que reglas se aplican para redondeos y cálculos en DECIMAL
+http://www-01.ibm.com/support/knowledgecenter/SSEPEK_10.0.0/com.ibm.db2z10.doc.sqlref/src/tpc/db2z_witharithmeticoperators.dita
+
+
+
+
+
+
+Especifica float (binary32), double (binary64) y decimal32 , decimal64
+http://en.wikipedia.org/wiki/IEEE_floating_point  
+
+
+
+Son los decimal32, decimal64 y decimal128: Sería el BigDecimal de Java o el decimal de C#. Implementado en HW por IBM no Intel.
+Esto es lo que IBM en DB2 llama DECFLOAT. Intel no lo implementa en HW, IBM sí. 
+http://en.wikipedia.org/wiki/Decimal_floating_point
+
+Son los decimal64: Sería el BigDecimal de Java o el decimal de C#. Implementado en HW por IBM no Intel. 
+Esto es lo que IBM DB2 llama DECFLOAT
+http://en.wikipedia.org/wiki/Decimal64_floating-point_format
+
+http://en.wikipedia.org/wiki/Densely_packed_decimal
+
+¿Es mejor decimal64 que double? Eso parece.
+¿Por qué es mejor? No lo sé :( (algo relacionado con redondeos y pérdida de precisión)
+
+
+binary32, binary 64: el double de toda la vida implementado en HW
+http://en.wikipedia.org/wiki/Double-precision_floating-point_format
+
+Esto es lo que en base de datos se llama DECIMAL o NUMERIC: Usa enteros: ejemplo 1254 puede representar 12.54
+http://en.wikipedia.org/wiki/Fixed-point_arithmetic
