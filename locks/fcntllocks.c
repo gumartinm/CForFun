@@ -257,6 +257,7 @@ end:
     return returnValue;
 }
 
+// TODO: it doesn't show the strerror :(
 int print_with_date(FILE *stream, const char *format, ...) {
     va_list arg;
     int done;
