@@ -167,10 +167,13 @@ void *thread_lock(void * arg)
         print_with_date (stderr, "Thread %d: flock get exclusive lock error", threadNumber, strerror(errno));
         goto end;
     }
+
+
+    sleep(3);
+
     print_with_date (stdout, "Thread %d: after lock\n", threadNumber);
 
-
-    sleep(5);
+    sleep(3);
 
 
     print_with_date(stdout, "Thread %d: before release lock\n", threadNumber);
