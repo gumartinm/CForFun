@@ -1,0 +1,15 @@
+# Returns files in $HOME and fills result in fileoutput
+#
+# ansible-playbook loopfiles.yml -e 'filename=fileoutput'
+#
+---
+- hosts: localhost
+  connection: local
+  tasks:
+  - name: List files in directory
+    find:
+      paths: "{{ ansible_env.HOME }}"
+    register: result
+  - name: Fill file
+    shell: echo "{{ item.path }}" >> "{{ filename }}"
+    with_items: "{{ result.files }}"
