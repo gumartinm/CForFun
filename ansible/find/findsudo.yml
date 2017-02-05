@@ -1,0 +1,22 @@
+# Returns files in $HOME and fills result in fileoutput
+#
+# ansible-vault --vault-password-file=vault.txt create sudopass
+# ansible-playbook aptsudo.yml -vvvvv --vault-password-file=vault.txt -e 'filename=fileoutput'
+#
+---
+- hosts: localhost
+  vars_files:
+    - sudopass
+
+  tasks:
+    - name: List files in directory
+      become: yes
+      become_user: root
+      become_method: sudo -i
+      find:
+        paths: "{{ ansible_env.HOME }}"
+      register: result
+    - name: Fill file
+      shell: echo "{{ item.path }}" >> "{{ filename }}"
+      with_items: "{{ result.files }}"      
+

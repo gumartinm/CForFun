@@ -1,0 +1,17 @@
+# Updates apt cache.
+#
+# ansible-vault --vault-password-file=vault.txt create sudopass
+# ansible-playbook aptsudo.yml -vvvvv --vault-password-file=vault.txt
+#
+---
+- hosts: localhost
+  vars_files:
+    - sudopass
+
+  tasks:
+    - name: apt update cache
+      become: yes
+      become_user: root
+      become_method: sudo
+      apt:
+        update_cache: yes
