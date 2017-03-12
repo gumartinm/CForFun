@@ -1,0 +1,18 @@
+# Creates docker container using image from privte registry
+#
+# vault.txt should be stored in Jenkins or Travis!!!
+# Required python library by docker_login: pip install docker-py
+# ansible-vault --vault-password-file=vault.txt create login
+# ansible-playbook containermaker.yml -vvvvv --vault-password-file=vault.txt
+#
+---
+- hosts: localhost
+  vars_files:
+    - login
+
+  tasks:
+    - name: Login into private registry
+      docker_login:
+        registry: registry.gumartinm.name:443
+        username: "{{ docker_login_username }}"
+        password: "{{ docker_login_password }}"
