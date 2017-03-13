@@ -16,3 +16,25 @@
         registry: registry.gumartinm.name:443
         username: "{{ docker_login_username }}"
         password: "{{ docker_login_password }}"
+
+
+# PROMOTION TO DEVELOPMENT ENVIRONMENT:
+#
+# a) CI server:
+# 1. docker build --build-arg artifact_name='backend-mdw--production-schema-0.1.0-SNAPSHOT.jar' --force-rm --rm --tag registry.gumartinm.name:443/backend-mdw--production-schema:0.1.0
+#    docker build overrides existing images (I will be using this feature when creating SNAPSHOT versions)
+# 2. docker push registry.gumartinm.name:443/backend-mdw--production-schema
+#    push to private registry the new tag
+# 3. every night, by means of cron script we must clean up our server:
+#    docker system prune --all
+#
+#
+# b) DEVELOPMENT ENVIRONMENT server:
+# 1. docker rm backend-mdw--production-schema-0.1.0-SNAPSHOT
+#    always remove just in case it was already deployed (we are working in this environment with SNAPSHOT versions)
+# 2. docker pull registry.gumartinm.name:443/backend-mdw--production-schema:0.1.0-SNAPSHOT
+#    we must choose the right version
+# 3. docker run --name backend-mdw--production-schema-0.1.0-SNAPSHOT -i -t registry.gumartinm.name:443/backend-mdw--production-schema:0.1.0-SNAPSHOT /bin/bash
+#    creating container :)
+#
+#

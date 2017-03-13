@@ -3,14 +3,19 @@ FROM ubuntuvivid
 
 EXPOSE 8000
 
+ARG artifact_name
+ENV ARTIFACT_NAME=${artifact_name}
+
 # See: https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/
 # I wonder if this could also work: http://veithen.github.io/2014/11/16/sigterm-propagation.html
-ENV TINI_VERSION v0.10.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-static /tini
+#
+ADD https://github.com/krallin/tini/releases/download/v0.14.0/tini-static /tini
+# Alternative with tini already downloaded (in case there is not github access)
+# COPY /PATH/TO/TINI/${TINI_VERSION}/tini-static /tini
 RUN chmod +x /tini
-
 ENTRYPOINT ["/tini", "--"]
-CMD ["/code/bin/someprogram"]
+CMD java -jar /code/${ARTIFACT_NAME}
 
-COPY ./Dockerfile /Dockerfile
-ADD ./build/* /code
+
+RUN mkdir /code
+COPY /code/* /code/
