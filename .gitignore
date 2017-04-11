@@ -34,3 +34,6 @@
 
 # Generated files
 bin/
+
+# https://github.com/python-rope/ropevim
+.ropeproject
