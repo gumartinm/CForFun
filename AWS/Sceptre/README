@@ -1,4 +1,0 @@
-sceptre --var "profile=aws-account" launch dev
-sceptre --var "profile=aws-account" create dev/simple-emr.yaml
-sceptre --var "profile=aws-account" create dev/simple-security-group.yaml
-sceptre --output json --var "profile=aws-account" generate dev/simple-security-group.yaml

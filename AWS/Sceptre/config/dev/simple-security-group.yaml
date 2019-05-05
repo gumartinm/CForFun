@@ -1,7 +1,0 @@
-template_path: simple-security-group.py
-
-sceptre_user_data:
-    VpcId: "vpc-2986bd4f"
-    SecurityGroupDescription: "Some Simple Security Group Description"
-    SecurityGroupName: "SimpleSecurityGroup"
-    PostgreSQLPort: 5432
